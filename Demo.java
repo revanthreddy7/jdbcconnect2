@@ -18,7 +18,7 @@ public class Demo {
 
 
     static double getBalance( double amount , String currency ){
-        // System.out.print("Enter Currency 1 -> Dollar 2-> Rupee 3 -> Yen 4 -> Won ");
+        
         double balance = 0 ;
         if( currency.equalsIgnoreCase("dollar") )return balance * 0.92 ;
         else if( currency.equalsIgnoreCase("rupee") )return balance * 0.011 ;
