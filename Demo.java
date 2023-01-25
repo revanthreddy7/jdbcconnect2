@@ -17,6 +17,17 @@ public class Demo {
 
 
 
+    static double getBalance( double amount , String currency ){
+        // System.out.print("Enter Currency 1 -> Dollar 2-> Rupee 3 -> Yen 4 -> Won ");
+        double balance = 0 ;
+        if( currency.equalsIgnoreCase("dollar") )return balance * 0.92 ;
+        else if( currency.equalsIgnoreCase("rupee") )return balance * 0.011 ;
+        else if( currency.equalsIgnoreCase("yen") )return balance * 0.0071 ;
+        else if( currency.equalsIgnoreCase("won") )return balance * 0.00075 ;
+
+        return balance ;
+
+    }
     static void printUserInfo( String name , String  username , double wallet_amount ){
 
         System.out.print("Name          : " + name + "\n" ) ;
@@ -33,7 +44,7 @@ public class Demo {
         String query = "SELECT name FROM userdetails WHERE username = '" + username+ "'" ;
         ResultSet resultSetUsername = statement.executeQuery("SELECT name FROM userdetails WHERE username = '" + username+ "'" ) ;
 
-        System.out.print( query );
+        //System.out.print( query );
 
         if ( resultSetUsername.next() ){
             int queryCount = 0 ;
