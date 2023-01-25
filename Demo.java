@@ -52,21 +52,6 @@ public class Demo {
             boolean passwordMatched = false ;
 
 
-
-            //boolean passwordMatched = resultSetAuthentication.next() ;
-            //resultSetAuthentication.next() ;
-            /*
-            while ( queryCount < 3 && ! passwordMatched  ){
-                System.out.print("Enter Password Again Chance left " + (char)( 3 - queryCount + '0' ) );
-                queryCount++ ;
-
-                password = sc.nextLine() ;
-                resultSetAuthentication = statement.executeQuery("SELECT name , wallet_amt FROM userdetails WHERE username = '" + username+ "' AND password = '"+ password + "'" ) ;
-                passwordMatched = resultSetAuthentication.next() ;
-
-            }
-             */
-
             do{
 
                 System.out.print("Enter Password : " );
