@@ -2,10 +2,9 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Scanner;
 
@@ -13,36 +12,35 @@ import java.util.Scanner;
 public class Main {
 
 
-    static Scanner sc = null;
-    static Connection con = null;
-    static PreparedStatement p = null;
-    static ResultSet r = null;
+    static Scanner sc;
+    static Connection con;
+    static PreparedStatement st ;
+
+    static Statement statement;
+    static ResultSet rs;
     private static final String ALGORITHM = "AES";
     private static final byte[] KEY = "MySuperSecretKey".getBytes(StandardCharsets.UTF_8);
+
+    public static final String connectionUrl  = "jdbc:sqlserver://localhost:1433;" + "databaseName=game;" + "user=sa; password=Password@10;" + " encrypt=true;trustServerCertificate=true";
     public static void main(String[] args) {
 
         sc = new Scanner(System.in);
-        String connectionUrl = "jdbc:sqlserver://localhost:1433;databaseName=game;user=sa;password=Prevanth123;encrypt=true;trustServerCertificate=true;  ";
-
 
         System.out.println("Enter 1 if you are a new user : ");
         System.out.println("Enter 2 if you are existing user : ");
 
         int choice = sc.nextInt();
         if (choice==1){
-            login();
             try {
-                con = DriverManager.getConnection(connectionUrl);
-
+                input();
             }
             catch (Exception e){
                 System.err.println(e);
             }
         } else if (choice==2) {
-            input();
-            try {
-                con = DriverManager.getConnection(connectionUrl);
 
+            try {
+                authUser();
             }
             catch (Exception e){
                 System.err.println(e);
@@ -53,47 +51,200 @@ public class Main {
             System.out.println("Enter the correct value!!!");
             main(new String[]{"args"});
         }
-
-
     }
 
+    //User Input
     public static void input(){
-        System.out.println("Enter the name: ");
-        String name = sc.next();
-        System.out.println("Enter the username: ");
-        String username = sc.next();
-        System.out.println("Enter the Password: ");
-        String pass = sc.next();
-        System.out.println("Enter the Password again: ");
-        String repass = sc.next();
+        int amt = 0;
+        int choice;
+
+        String name = "";
+        String username = "";
+        String pass = "";
+        String repass = "";
+        String currency = "";
+
         try{
+
+            System.out.println("Enter the name: ");
+            name = sc.next();
+
+            System.out.println("Enter the username: ");
+            username = sc.next();
+
+            System.out.println("Enter the Password: ");
+            pass = sc.next();
+
+            System.out.println("Enter the Password again: ");
+            repass = sc.next();
+
             System.out.println("Enter the wallet Amount: ");
-            int amt = sc.nextInt();
+            amt = sc.nextInt();
+
+            System.out.println("Enter Your Choice of Currency:1:EURO, 2:USD, 3:INR, 4:POUND, 5:WON");
+            choice = sc.nextInt();
+            ArrayList<String> currencies = new ArrayList<>(
+                    Arrays.asList("EURO", "USD", "INR", "POUND", "WON")
+            );
+
+            currency = currencies.get(choice);
+
+            if(choice<1 || choice>5){
+                System.out.println("Please enter the correct input!!");
+                input();
+            }
         }
         catch (Exception e){
             System.err.println(e);
+            input();
+        }
+//
+        insertData(username, name, pass, repass, amt, currency);
+    }
+
+    //User Authentication
+    public static void  authUser() throws Exception{
+        System.out.print("Enter username : ");
+//        sc.next();
+        String username = sc.next() ;
+//        sc.next();
+        con = DriverManager.getConnection(connectionUrl);
+        Statement statement = con.createStatement() ;
+        String query = "SELECT name FROM userdetails WHERE username = '" + username+ "'" ;
+
+        ResultSet resultSetUsername = statement.executeQuery(query) ;
+
+        //System.out.print( query );
+
+        if ( resultSetUsername.next() ){
+            int queryCount = 0 ;
+            ResultSet resultSetAuthentication = null ;
+            boolean passwordMatched = false ;
+
+            do{
+
+                System.out.print("Enter Password : " );
+                String password = sc.next() ;
+                String q2 = "SELECT name , wallet_amt FROM userdetails WHERE username = ? AND password = ?";
+                st = con.prepareStatement(q2);
+
+                st.setString(1, username);
+                st.setString(2, encrypt(password));
+
+
+                resultSetAuthentication = statement.executeQuery(q2) ;
+
+                if( ! resultSetAuthentication.next() ){
+                    System.out.print("Wrong password Enter password again \n");
+                    passwordMatched = false ;
+                }else{
+                    passwordMatched = true ;
+                }
+
+                queryCount++ ;
+
+            }while(queryCount < 3 && ! passwordMatched ) ;
+
+
+            if( passwordMatched ){
+
+                String name = resultSetAuthentication.getString(1) ;
+                double wallet_amount = resultSetAuthentication.getDouble( 2 ) ;
+
+                displayAll(name ,  wallet_amount, username);
+
+            }else {
+                System.out.print("You exceeded password limit \n");
+
+            }
+
+        }else{
+
+            System.out.print("No such username exists. Create an Account ");
+        }
+    }
+
+    // Validation
+    public static Boolean validation(String username, String password, String retype_password) {
+
+        boolean hasDigit = false;
+        boolean hasAlphabet = false;
+        boolean hasSpecial = false;
+
+        for (int i = 0; i < password.length(); i++) {
+            char f = password.charAt(i);
+
+            if(Character.isDigit(f)) hasDigit = true;
+            if(Character.isAlphabetic(f)) hasAlphabet = true;
+            if(!Character.isDigit(f) && !Character.isAlphabetic(f)) hasSpecial = true;
         }
 
-        createacc(name, username, pass, repass, amt);
+        if(username.length()<3){
+            System.out.println("Username length should be greater than 3");
+            return false;
+        } else if (password.length() < 8) {
+            System.out.println("Passwords should have a minimum of 8 characters");
+            return false;
+        } else if ( !hasDigit || !hasAlphabet || !hasSpecial){
+            System.out.println("Please Include a minimum of 1 Digit 1 Alphabet and 1 Special Character");
+            return false;
+        } else if (!password.equals(retype_password)) {
+            System.out.println("Passwords do not match");
+            return false;
+        }
+
+        return true;
     }
 
-    public static String EncPwd(String pwd, byte[] KEY, String alg) throws Exception{
+    //Inserting into table
+    public static Boolean insertData(String username, String name, String pass, String repass, double amt, String currency){
+        try{
 
-        Key key = new SecretKeySpec(KEY, alg);
+            if(validation(username, pass, repass)){
 
-        Cipher cipher = Cipher.getInstance(alg);
-        cipher.init(Cipher.ENCRYPT_MODE, key);
+                String Query = "INSERT INTO userdetails VALUES (?,?,?,?,?)";
+                con = DriverManager.getConnection(connectionUrl);
+                st = con.prepareStatement(Query);
 
-        byte[] encValue = cipher.doFinal(pwd.getBytes());
-        byte[] encryptedValue64 = Base64.getEncoder().encode(encValue);
-        String pass =  new String(encryptedValue64);
-        System.out.println(pass);
 
-        return pass;
+                int userid = 0 ;
+                //Add userid auto increment-------------------
+
+                st.setInt(1, userid);
+                st.setString(2, username);
+                st.setString(3, name);
+                st.setString(4, encrypt(pass));
+                st.setDouble(5, getBalance(amt, currency));
+
+                int rowsEffected = st.executeUpdate();
+
+                if(rowsEffected == 0){
+                    return false;
+                }
+            }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.out.println("The UserName Already Exists");
+            insertData(username, name, pass, repass, amt, currency);
+        }
+        return true;
+    }
+
+    //Currency Conversion
+    static double getBalance(double wallet_amt , String currency){
+
+        if( currency.equalsIgnoreCase("USD") )return wallet_amt * 0.92 ;
+        else if( currency.equalsIgnoreCase("INR") )return wallet_amt * 0.011 ;
+        else if( currency.equalsIgnoreCase("POUND") )return wallet_amt * 0.0071 ;
+        else if( currency.equalsIgnoreCase("WON") )return wallet_amt * 0.00075 ;
+
+        return wallet_amt ;
 
     }
 
-    public static String Encrypt(String pwd) throws Exception{
+    //Encryption
+    public static String encrypt(String pwd) throws Exception{
         Key key = new SecretKeySpec(KEY, ALGORITHM);
         Cipher c = Cipher.getInstance(ALGORITHM);
         c.init(Cipher.ENCRYPT_MODE, key);
@@ -105,23 +256,25 @@ public class Main {
         return sd;
     }
 
-    public static String Decrypt(String encrypt) throws Exception{
+    //Decryption
+    public static String decrypt(String encrypt) throws Exception{
         Key key = new SecretKeySpec(KEY, ALGORITHM);
         Cipher c = Cipher.getInstance(ALGORITHM);
         c.init(Cipher.DECRYPT_MODE, key);
 
         byte[] decodedValue64 = Base64.getDecoder().decode(encrypt.getBytes());
         byte[] decValue = c.doFinal(decodedValue64);
+
         return new String(decValue);
 
     }
 
-    public static void displayAll(String name, int wallet_amt, String username){
+    //Displaying User Information
+    public static void displayAll(String name, double wallet_amount, String username){
         System.out.println("***-------****-------***");
-        System.out.println(username);
-        System.out.println(name);
-        System.out.println(wallet_amt);
+        System.out.print("Name          : " + name + "\n" ) ;
+        System.out.print("Username      : " + username + "\n" ) ;
+        System.out.print("Wallet Amount : " + wallet_amount + "\n" ) ;
         System.out.println("***-------****-------***");
-
     }
 }
