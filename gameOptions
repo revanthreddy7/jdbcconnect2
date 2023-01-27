@@ -1,0 +1,38 @@
+
+
+static void gameOptions(){
+        int option = -1 ;
+        System.out.print("Enter 1 if you want to play Game : \n");
+        System.out.print("Enter Any Key to exit : ");
+        try {
+            option = sc.nextInt() ;
+        }catch ( Exception e ){
+            System.out.print("Thanks for visiting our cashino \n");
+            return ;
+           //e.printStackTrace() ;
+        }
+
+
+        if( option == 1 ){
+            System.out.print("Enter 1 if you want to play Roulette : \n");
+            System.out.print("Enter 2 if you want to play Dice : \n");
+            System.out.print("Enter Any other key to exit : ");
+            int gameId = 0 ;
+            try {
+                gameId = sc.nextInt();
+            }catch ( Exception e ){
+                System.out.print("Thanks for visiting our cashino \n");
+                return ;
+            }
+
+            if( gameId == 1 ){
+                playGame( 1 );
+
+            }else if( gameId == 2 ){
+                playGame( 2 );
+            }
+
+        }else return ;
+
+
+    }
