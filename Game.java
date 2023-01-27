@@ -57,8 +57,11 @@ public class Game {
         }
         // sum bet
         else if (betType == 3){
-            System.out.println("Please Enter the dice sum you wish to bet on");
-            this.luckyNumber = sc.nextInt();
+            System.out.println("Please Enter the first dice number: ");
+            int d1 = sc.nextInt();
+            System.out.println("Please Enter the second dice number: ");
+            int d2 = sc.nextInt();
+            this.luckyNumber = d1+d2;
             if (luckyNumber>12 || luckyNumber<2){
                 this.playDice();
             }
