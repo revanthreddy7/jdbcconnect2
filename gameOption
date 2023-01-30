@@ -1,0 +1,144 @@
+
+
+
+static void gameOptions( int userId ) throws SQLException{
+        int option = -1 ;
+        System.out.print("Enter 1 if you want to play Game : \n");
+        System.out.print("Enter Any Key to exit : ");
+        try {
+            option = sc.nextInt() ;
+        }catch ( Exception e ){
+            System.out.print("Thanks for visiting our casino \n");
+            return ;
+
+        }
+
+        if( option == 1 ) {
+            System.out.print("Enter 1 if you want to play Roulette : \n");
+            System.out.print("Enter 2 if you want to play Dice : \n");
+            System.out.print("Enter Any other key to exit : ");
+            int gameId = 0;
+            try {
+                gameId = sc.nextInt();
+            } catch (Exception e) {
+                System.out.print("Thanks for visiting our cashino \n");
+                return;
+            }
+
+            ResultSet resultSetUser = statement.executeQuery("select wallet_amt from userdetails where userid = " + userId );
+
+            double wallet_amt = 0 ;
+            int minAmount = 0 , maxAmount = 0 ;
+            if( resultSetUser.next())wallet_amt = resultSetUser.getDouble(1 ) ;
+            resultSetUser.close();
+            ResultSet resultSetGame = statement.executeQuery("select min_amt , max_amt from game_details where gid = " + gameId ) ;
+            if( resultSetGame.next()){ minAmount = resultSetGame.getInt(1) ; maxAmount = resultSetGame.getInt(2) ; }
+
+            resultSetGame.close() ;
+            double betAmount = 0 ;
+
+            do{
+                System.out.print("Your wallet amount is " + wallet_amt+ "\n" );
+                System.out.print("Enter Your bet amount in the range ( " + minAmount + " - " + maxAmount + " ) : " );
+                betAmount = sc.nextInt() ;
+
+            }while(  betAmount <= 0 || betAmount > wallet_amt  || betAmount < minAmount || betAmount > maxAmount ) ;
+
+
+            if ( gameId == 1) {
+
+                    System.out.print("Select Your game condition from options given below\n");
+                    System.out.print("Enter 1 for odd : \n");
+                    System.out.print("Enter 2 for even : \n");
+                    System.out.print("Enter 3 for selecting your own digit : \n");
+                    System.out.print("Enter any other key to exit : ");
+
+                    int gameCondition = 0 ;
+
+                    try {
+                        gameCondition = sc.nextInt() ;
+
+                    } catch (Exception e) {
+                        System.out.print("Thanks for visiting our casino \n");
+                        return;
+                    }
+
+                    if ( gameCondition == 3 ) {
+
+                        int favouriteNumber = 0 ;
+
+                        do {
+                            System.out.print("Enter number between 1 to 36(Both included )");
+
+                            try {
+                                favouriteNumber = sc.nextInt() ;
+
+                            }catch ( Exception e ){
+                                System.out.print("Thanks for visiting our casino \n");
+                                return;
+                            }
+
+
+                        } while ( favouriteNumber <= 0 || favouriteNumber > 36 );
+
+                        try{
+                            statement.executeUpdate("UPDATE  userdetails SET wallet_amt = wallet_amt - " + betAmount ) ;
+                            double wonAmount = Roulette.playGame( betAmount , gameCondition , favouriteNumber ) ;
+                            statement.executeUpdate("UPDATE  userdetails SET wallet_amt = wallet_amt + " + wonAmount ) ;
+
+                            ResultSet resultSet = statement.executeQuery("SELECT COUNT(*) FROM transcation_details " ) ;
+                            int tid = 0 ;
+                            if( resultSet.next() )tid = resultSet.getInt(1) ;
+
+                            PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO transaction_details values(?,?,?,?,?,?,) ;");
+                            preparedStatement.setInt(++tid , userId , gameId ,  , betAmount , wonAmount );
+
+
+                        }catch ( Exception e ){
+                            e.printStackTrace() ;
+                        }
+
+
+                    } else if ( gameCondition == 1) {
+
+                        statement.executeUpdate("UPDATE  userdetails SET wallet_amt = wallet_amt - " + betAmount ) ;
+                        double wonAmount = Roulette.playGame( betAmount , gameCondition ) ;
+                        statement.executeUpdate("UPDATE  userdetails SET wallet_amt = wallet_amt + " + wonAmount ) ;
+
+                    } else if ( gameCondition == 2) {
+
+                        statement.executeUpdate("UPDATE  userdetails SET wallet_amt = wallet_amt - " + betAmount ) ;
+                        double wonAmount = Roulette.playGame( betAmount , gameCondition ) ;
+                        statement.executeUpdate("UPDATE  userdetails SET wallet_amt = wallet_amt + " + wonAmount ) ;
+
+                    } else {
+                        return;
+                    }
+
+
+            } else if( gameId == 2 ){
+                // Dice game starts from here
+                int firstDiceValue = 0 , secondDiceValue = 0 ;
+                do{
+                    System.out.print("Enter digit of first dice : " );
+                    firstDiceValue = sc.nextInt() ;
+
+                }while ( firstDiceValue < 0 || firstDiceValue > 6 ) ;
+
+                do{
+                    System.out.print("Enter digit of second dice : ");
+                    secondDiceValue = sc.nextInt() ;
+
+                }while ( secondDiceValue < 0 || secondDiceValue > 6 ) ;
+                statement.executeUpdate("UPDATE  userdetails SET wallet_amt = wallet_amt - " + betAmount ) ;
+
+            }
+
+        }
+
+        ResultSet resultSet = statement.executeQuery("SELECT wallet_amt from userdetails WHERE userid = " + userId ) ;
+        double availableAmount = 0 ;
+        if(resultSet.next() )availableAmount = resultSet.getDouble( 1 ) ;
+        System.out.print("Availabe Amount : " + availableAmount + "\n" );
+
+    }
