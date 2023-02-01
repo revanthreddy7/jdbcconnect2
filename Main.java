@@ -52,44 +52,6 @@ public class Main{
             }
 
         }
-//        else if (choice==3){
-//            System.out.println("Enter Number of rows to be tested: ");
-//            Scanner sc = new Scanner(System.in);
-//            int rows = sc.nextInt();
-//
-//            long start;
-//            long end;
-//            long execution;
-//
-//            // get the start time
-//            start = System.currentTimeMillis();
-//
-//            // call the method
-//            batchEnter1(rows);
-//
-//            // get the end time
-//            end = System.currentTimeMillis();
-//
-//            // execution time
-//            execution = end - start;
-//
-//            System.out.println("Execution time with trigger : " + execution);
-//
-//            // get the start time
-//            start = System.currentTimeMillis();
-//
-//            // call the method
-//            batchEnter2(rows);
-//
-//            // get the end time
-//            end = System.currentTimeMillis();
-//
-//            // execution time
-//            execution = end - start;
-//
-//            System.out.println("Execution time without trigger : " + execution);
-//
-//        }
         else{
             System.out.println("Enter the correct value!!!");
             main(new String[]{"args"});
