@@ -198,6 +198,24 @@ public class Main{
             System.out.println("Enter the username: ");
             username = sc.next();
 
+            boolean usrname = true;
+            Connection con = DriverManager.getConnection(connectionUrl);
+            String sql2 = "SELECT USERNAME FROM user_details WHERE USERNAME LIKE '"+username+"'";
+            Statement st23 = con.createStatement();
+            ResultSet rs2 = st23.executeQuery(sql2);
+
+            if(rs2.next()){
+                usrname=false;
+            }
+
+            if(!usrname ){
+                System.out.println("The Username already exists!! Try a different one :)");
+                input();
+            } else if ( username.length()<3) {
+                System.out.println("The Username must be at least 3 characters long!! Try a different one :)");
+            }
+
+
             System.out.println("Enter the Password: ");
             pass = sc.next();
 
