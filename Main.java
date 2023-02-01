@@ -3,14 +3,17 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Date;
 import java.util.Scanner;
+import java.util.*;
 
-
-public class Main {
-
+public class Main{
 
     static Scanner sc;
     static Connection con;
@@ -21,13 +24,15 @@ public class Main {
     private static final String ALGORITHM = "AES";
     private static final byte[] KEY = "MySuperSecretKey".getBytes(StandardCharsets.UTF_8);
 
-    public static final String connectionUrl  = "jdbc:sqlserver://localhost:1433;" + "databaseName=game;" + "user=sa; password=Password@10;" + " encrypt=true;trustServerCertificate=true";
-    public static void main(String[] args) {
+    public static final String connectionUrl  = "jdbc:sqlserver://localhost:1433;" + "databaseName=game;" + "user=sa; password=Prevanth123;" + " encrypt=true;trustServerCertificate=true";
+    public static void main(String[] args) throws SQLException {
 
         sc = new Scanner(System.in);
 
         System.out.println("Enter 1 if you are a new user : ");
         System.out.println("Enter 2 if you are existing user : ");
+//        System.out.println("Enter 3 for testing : ");
+
 
         int choice = sc.nextInt();
         if (choice==1){
@@ -47,12 +52,171 @@ public class Main {
             }
 
         }
+//        else if (choice==3){
+//            System.out.println("Enter Number of rows to be tested: ");
+//            Scanner sc = new Scanner(System.in);
+//            int rows = sc.nextInt();
+//
+//            long start;
+//            long end;
+//            long execution;
+//
+//            // get the start time
+//            start = System.currentTimeMillis();
+//
+//            // call the method
+//            batchEnter1(rows);
+//
+//            // get the end time
+//            end = System.currentTimeMillis();
+//
+//            // execution time
+//            execution = end - start;
+//
+//            System.out.println("Execution time with trigger : " + execution);
+//
+//            // get the start time
+//            start = System.currentTimeMillis();
+//
+//            // call the method
+//            batchEnter2(rows);
+//
+//            // get the end time
+//            end = System.currentTimeMillis();
+//
+//            // execution time
+//            execution = end - start;
+//
+//            System.out.println("Execution time without trigger : " + execution);
+//
+//        }
         else{
             System.out.println("Enter the correct value!!!");
             main(new String[]{"args"});
         }
     }
 
+    //Batch enter data
+    public static void batchEnter1(int rows) throws SQLException {
+
+        con = DriverManager.getConnection(connectionUrl);
+
+        for (int i = 0; i < rows; i++){
+
+            Random random = new Random();
+
+            int userid = random.nextInt(999);
+            int amt = random.nextInt(999);
+
+            StringBuffer userBuffer = new StringBuffer();
+            userBuffer.append(random.nextInt(99));
+
+            for(int j= 0;i<6;i++){
+
+                userBuffer.append((char) (random.nextInt(26)+'a'));
+            }
+
+            userBuffer.append(random.nextInt(9));
+
+            String username = userBuffer.toString();
+
+            StringBuffer nameBuffer = new StringBuffer();
+
+            for(int j= 0;i<10;i++){
+
+                nameBuffer.append((char) (random.nextInt(26)+'a'));
+            }
+            String name = nameBuffer.toString();
+
+            String [] arr = {"!","@","#","$","%","^","&","*","("};
+            StringBuffer passBuffer = new StringBuffer();
+
+            for(int j= 0;i<10;i++){
+
+                passBuffer.append((char) (random.nextInt(26)+'a'));
+            }
+            passBuffer.append(arr[random.nextInt(9)]);
+
+            passBuffer.append(random.nextInt(9));
+            passBuffer.append(random.nextInt(9));
+            passBuffer.append(random.nextInt(9));
+
+            String pass = passBuffer.toString();
+
+            String Query = "INSERT INTO user_details VALUES (?,?,?,?,?)";
+
+            st = con.prepareStatement(Query);
+
+            st.setInt(1, userid);
+            st.setString(2, username);
+            st.setString(3, name);
+            st.setString(4, pass);
+            st.setDouble(5, amt);
+
+            st.executeUpdate();
+        }
+    }
+
+    //Batch enter data
+    public static void batchEnter2(int rows) throws SQLException {
+
+        con = DriverManager.getConnection(connectionUrl);
+
+        for (int i = 0; i < rows; i++){
+
+            Random random = new Random();
+
+            int userid = random.nextInt(999);
+            int amt = random.nextInt(999);
+
+            StringBuffer userBuffer = new StringBuffer();
+            userBuffer.append(random.nextInt(99));
+
+            for(int j= 0;i<6;i++){
+
+                userBuffer.append((char) (random.nextInt(26)+'a'));
+            }
+
+            userBuffer.append(random.nextInt(9));
+
+            String username = userBuffer.toString();
+
+            StringBuffer nameBuffer = new StringBuffer();
+
+            for(int j= 0;i<10;i++){
+
+                nameBuffer.append((char) (random.nextInt(26)+'a'));
+            }
+            String name = nameBuffer.toString();
+
+            String [] arr = {"!","@","#","$","%","^","&","*","("};
+            StringBuffer passBuffer = new StringBuffer();
+
+            for(int j= 0;i<10;i++){
+
+                passBuffer.append((char) (random.nextInt(26)+'a'));
+            }
+            passBuffer.append(arr[random.nextInt(9)]);
+
+            passBuffer.append(random.nextInt(9));
+            passBuffer.append(random.nextInt(9));
+            passBuffer.append(random.nextInt(9));
+
+            String pass = passBuffer.toString();
+
+            String Query = "INSERT INTO user_details_new VALUES (?,?,?,?,?)";
+
+            st = con.prepareStatement(Query);
+
+            st.setInt(1, userid);
+            st.setString(2, username);
+            st.setString(3, name);
+            st.setString(4, pass);
+            st.setDouble(5, amt);
+
+            st.executeUpdate();
+        }
+    }
     //User Input
     public static void input(){
         int amt = 0;
@@ -98,23 +262,26 @@ public class Main {
             System.err.println(e);
             input();
         }
-//
+
         insertData(username, name, pass, repass, amt, currency);
     }
 
     //User Authentication
     public static void  authUser() throws Exception{
         System.out.print("Enter username : ");
-//        sc.next();
+
         String username = sc.next() ;
-//        sc.next();
+
         con = DriverManager.getConnection(connectionUrl);
         Statement statement = con.createStatement() ;
-        String query = "SELECT name FROM userdetails WHERE username = '" + username+ "'" ;
 
-        ResultSet resultSetUsername = statement.executeQuery(query) ;
+        String query = "SELECT name FROM user_details WHERE username = ?";
 
-        //System.out.print( query );
+        st = con.prepareStatement(query);
+
+        st.setString(1, username);
+
+        ResultSet resultSetUsername = st.executeQuery();
 
         if ( resultSetUsername.next() ){
             int queryCount = 0 ;
@@ -125,14 +292,15 @@ public class Main {
 
                 System.out.print("Enter Password : " );
                 String password = sc.next() ;
-                String q2 = "SELECT name , wallet_amt FROM userdetails WHERE username = ? AND password = ?";
-                st = con.prepareStatement(q2);
+
+                query = "SELECT userid, username, wallet_amt FROM user_details WHERE username = ? AND password = ?";
+
+                st = con.prepareStatement(query);
 
                 st.setString(1, username);
                 st.setString(2, encrypt(password));
 
-
-                resultSetAuthentication = statement.executeQuery(q2) ;
+                resultSetAuthentication = st.executeQuery();
 
                 if( ! resultSetAuthentication.next() ){
                     System.out.print("Wrong password Enter password again \n");
@@ -148,10 +316,15 @@ public class Main {
 
             if( passwordMatched ){
 
-                String name = resultSetAuthentication.getString(1) ;
-                double wallet_amount = resultSetAuthentication.getDouble( 2 ) ;
+                int userId  = resultSetAuthentication.getInt(1);
+                String name = resultSetAuthentication.getString(2) ;
+                double wallet_amount = resultSetAuthentication.getDouble( 3 ) ;
 
-                displayAll(name ,  wallet_amount, username);
+                System.out.println("User ID : " + userId);
+
+                displayAll(name, wallet_amount, username);
+
+                gameOptions(userId);
 
             }else {
                 System.out.print("You exceeded password limit \n");
@@ -163,7 +336,190 @@ public class Main {
             System.out.print("No such username exists. Create an Account ");
         }
     }
+    // Game Options
 
+    static double betAmount = 0 ;
+
+    static void gameOptions( int userId ) throws SQLException {
+        int option = -1;
+        double winAmt = 0;
+        System.out.print("Enter 1 if you want to play Game : \n");
+        System.out.print("Enter Any Key to exit : ");
+        try {
+            option = sc.nextInt();
+        } catch (Exception e) {
+            System.out.print("Thanks for visiting our casino \n");
+            return;
+
+        }
+        int gameId = 0;
+        if (option == 1) {
+            System.out.print("Enter 1 if you want to play Roulette : \n");
+            System.out.print("Enter 2 if you want to play Dice : \n");
+            System.out.print("Enter Any other key to exit : ");
+
+//            gameId = 0;
+            try {
+                gameId = sc.nextInt();
+            } catch (Exception e) {
+                System.out.print("Thanks for visiting our casino \n");
+                return;
+            }
+
+            Statement statement = con.createStatement();
+            int wallet_amount = 0;
+
+            ResultSet resultSetUser = statement.executeQuery("select * from user_details where userid = " + userId);
+
+            int minAmount = 0, maxAmount = 0;
+            if (resultSetUser.next()) {
+                wallet_amount = resultSetUser.getInt(5);
+            }
+//            resultSetUser.close();
+            ResultSet resultSetGame = statement.executeQuery("select min_amt , max_amt from game_details where gid = " + gameId);
+            if (resultSetGame.next()) {
+                minAmount = resultSetGame.getInt(1);
+                maxAmount = resultSetGame.getInt(2);
+
+            }
+
+            resultSetGame.close();
+
+            do {
+                System.out.print("Your wallet amount is " + wallet_amount + "\n");
+                System.out.print("Enter Your bet amount in the range ( " + minAmount + " - " + maxAmount + " ) : ");
+                betAmount = sc.nextInt();
+
+            } while (betAmount <= 0 || betAmount > wallet_amount || betAmount < minAmount || betAmount > maxAmount);
+
+            System.out.print("Select Your game condition from options given below\n");
+            System.out.print("Enter 1 for odd : \n");
+            System.out.print("Enter 2 for even : \n");
+            System.out.print("Enter 3 for selecting your own digit : \n");
+            System.out.print("Enter any other key to exit : ");
+
+            int gameCondition = 0;
+
+            try {
+                gameCondition = sc.nextInt();
+
+            } catch (Exception e) {
+                System.out.print("Thanks for visiting our casino \n");
+                return;
+            }
+
+            GameLogic game = new GameLogic(betAmount, gameCondition);
+
+            if (gameId == 1) {
+
+                winAmt = game.playRoulette();
+
+            } else if (gameId == 2) {
+
+                winAmt = game.playDice();
+
+            }
+
+        }
+        double netamt = winAmt - betAmount;
+        Statement statement = con.createStatement();
+        statement.executeUpdate("UPDATE  user_details SET wallet_amt = wallet_amt + " + netamt);
+        if (netamt > 0) {
+            System.out.print("Congratulationss!! You Won a Profit of " + netamt + "\n");
+        }
+
+        //transaction id
+
+        int tid = 0;
+        String querytid = "SELECT TOP 1 * FROM transaction_details ORDER BY tid DESC ";
+        Statement sta = con.createStatement();
+        rs = sta.executeQuery( querytid );
+
+        if (rs.next()) {
+            tid = rs.getInt("tid");
+        }
+        tid++;
+
+
+
+        // uid
+        int uid = 0;
+        String query = "SELECT userid FROM user_details ";
+
+
+        Statement s = con.createStatement();
+        rs = s.executeQuery(query);
+
+        if (rs.next()) {
+            uid = rs.getInt("userid");
+        }
+//        System.out.println(uid);
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yy hh:mm:ss");
+
+        String sql = "INSERT INTO transaction_details values(" +  tid + "," + userId + "," + gameId + "," + "convert( datetime , '" + now.format(format) + "' , 5)" + "," + betAmount + "," + winAmt +"); " ;
+        Statement ps = con.createStatement();
+        ps.executeUpdate(sql);
+
+        System.out.println("Do you want to play another game?");
+        System.out.print("Enter 1 if you want to see your transaction history : \n");
+
+        System.out.println("Enter 2 you want to play or anything else to exit: ");
+
+
+        try {
+            int exit = sc.nextInt();
+            if (exit == 1) {
+                //transaction history.
+//                System.out.println("enter transaction history333333");
+                transactionHistory(userId);
+
+            }
+            if (exit == 2) {
+                gameOptions(userId);
+            }
+
+
+        } catch (Exception e) {
+            System.out.print("Thanks for visiting our casino \n");
+            return;
+
+        }
+    }
+    static void transactionHistory(int userId) throws SQLException {
+        Statement statement = con.createStatement();
+        ResultSet rs = statement.executeQuery("SELECT UID, TID, TDATETIME, bet_amount, win_amount, gname " +
+                "from game_details gd inner join transaction_details td " +
+                "on uid ="+userId+"  and gd.gid = td.gid" );
+        System.out.println("Date/Time | Game name | Bet Amount | Win Amount");
+        System.out.println("Transaction History");
+        int count =1;
+
+        while (rs.next()) {
+            int tid = rs.getInt("tid");
+            int uid = rs.getInt("uid");
+            String date = rs.getString("TDATETIME");
+            int bet_amount = rs.getInt("bet_amount");
+            int win_amount = rs.getInt("win_amount");
+            String gname = rs.getString("gname");
+            count++;
+            System.out.println(count+") "+date + "\t "+gname+"\t " + bet_amount + "\t " + win_amount);
+
+
+
+        }
+        System.out.println("Type a number to play");
+        System.out.print("Anything else to exit: ");
+        try {
+            sc.nextInt();
+            gameOptions(userId);
+
+        }
+        catch (Exception e) {
+            System.out.print("Thanks for visiting our casino \n");
+            return;
+        }
+    }
     // Validation
     public static Boolean validation(String username, String password, String retype_password) {
 
@@ -182,7 +538,7 @@ public class Main {
         if(username.length()<3){
             System.out.println("Username length should be greater than 3");
             return false;
-        } else if (password.length() < 8) {
+        } else if (password.length() <= 8) {
             System.out.println("Passwords should have a minimum of 8 characters");
             return false;
         } else if ( !hasDigit || !hasAlphabet || !hasSpecial){
@@ -202,13 +558,23 @@ public class Main {
 
             if(validation(username, pass, repass)){
 
-                String Query = "INSERT INTO userdetails VALUES (?,?,?,?,?)";
                 con = DriverManager.getConnection(connectionUrl);
-                st = con.prepareStatement(Query);
 
-
+                //Auto Incrementing userid
                 int userid = 0 ;
-                //Add userid auto increment-------------------
+                String query = "SELECT TOP 1 userid FROM user_details ORDER BY userid DESC ";
+
+                st = con.prepareStatement(query);
+                rs = st.executeQuery();
+
+                if(rs.next()){
+                    userid = rs.getInt("userid");
+                }
+                userid++;
+
+                //Inserting into table
+                String Query = "INSERT INTO user_details VALUES (?,?,?,?,?)";
+                st = con.prepareStatement(Query);
 
                 st.setInt(1, userid);
                 st.setString(2, username);
@@ -218,9 +584,8 @@ public class Main {
 
                 int rowsEffected = st.executeUpdate();
 
-                if(rowsEffected == 0){
-                    return false;
-                }
+                if (rowsEffected == 1) System.out.println("Succesfully Created User");
+                else if(rowsEffected == 0) return false;
             }
         }
         catch(Exception e){
@@ -228,6 +593,7 @@ public class Main {
             System.out.println("The UserName Already Exists");
             insertData(username, name, pass, repass, amt, currency);
         }
+
         return true;
     }
 
@@ -240,7 +606,6 @@ public class Main {
         else if( currency.equalsIgnoreCase("WON") )return wallet_amt * 0.00075 ;
 
         return wallet_amt ;
-
     }
 
     //Encryption
@@ -252,7 +617,7 @@ public class Main {
         byte[] encValue = c.doFinal(pwd.getBytes());
         byte[] encryptedValue64 = Base64.getEncoder().encode(encValue);
         String sd =  new String(encryptedValue64);
-        System.out.println(sd);
+
         return sd;
     }
 
@@ -266,7 +631,6 @@ public class Main {
         byte[] decValue = c.doFinal(decodedValue64);
 
         return new String(decValue);
-
     }
 
     //Displaying User Information
