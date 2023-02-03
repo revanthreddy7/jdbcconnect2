@@ -6,7 +6,6 @@ class UserDAO{
     static Connection con;
     static PreparedStatement pst;
     static DatabaseConnection dbConnection;
-    
     private static String username;
     private static String database;
     private static String password;
