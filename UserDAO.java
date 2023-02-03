@@ -20,7 +20,7 @@ class UserDAO{
         con = dbConnection.getConnection();
     }
 
-    public int insertData(User user) throws SQLException{
+    public static int insertData(User user) throws SQLException{
         pst = con.prepareStatement(insert);
         pst.setInt(1, user.getUserid());
         pst.setString(2, user.getUsername());
@@ -30,7 +30,7 @@ class UserDAO{
         return pst.executeUpdate();
     }
 
-    public User getData(String username) throws SQLException{
+    public static User getData(String username) throws SQLException{
         pst = con.prepareStatement(getUserDetails);
         pst.setString(1, username);
         rs = pst.executeQuery();
@@ -40,7 +40,7 @@ class UserDAO{
         return user;
     }
 
-    public int getUserid() throws SQLException{
+    public static int getUserid() throws SQLException{
         int userId = 0;
         st = con.createStatement();
         rs = st.executeQuery(getUserDetails);
@@ -48,7 +48,7 @@ class UserDAO{
         return userId++;
     }
 
-    public User getLatestUser() throws SQLException{
+    public static User getLatestUser() throws SQLException{
         st = con.createStatement();
         rs = st.executeQuery(getLastRecord);
         rs.next();
@@ -56,14 +56,16 @@ class UserDAO{
         rs.close();
         return user;
     }
-    public Boolean checkUserExists() throws SQLException{
+    
+    public static Boolean checkUserExists() throws SQLException{
         pst = con.prepareStatement(getUserDetails);
         pst.setString(1, username);
         rs = pst.executeQuery();
         if(rs.next()) return true;
         return false;
     }
-    public Boolean authUser() throws SQLException{
+    
+    public static Boolean authUser() throws SQLException{
         pst = con.prepareStatement(autheticateUser);
         pst.setString(1, username);
         pst.setString(2, password);
