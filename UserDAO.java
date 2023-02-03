@@ -1,6 +1,6 @@
 import java.sql.*;
 
-class UserDAO{
+class UserDAO {
     static ResultSet rs;
     static Statement st;
     static Connection con;
@@ -14,12 +14,12 @@ class UserDAO{
     private static final String getUserDetails = "SELECT * FROM userdetails WHERE username = ?";
     private static final String autheticateUser = "SELECT * FROM userdetails WHERE username = ? && password = ?";
 
-    public UserDAO() throws SQLException{
+    public UserDAO() throws SQLException {
         dbConnection = new DatabaseConnection(database, username, password);
         con = dbConnection.getConnection();
     }
 
-    public static int insertData(User user) throws SQLException{
+    public static int insertData(User user) throws SQLException {
         pst = con.prepareStatement(insert);
         pst.setInt(1, user.getUserid());
         pst.setString(2, user.getUsername());
@@ -29,7 +29,7 @@ class UserDAO{
         return pst.executeUpdate();
     }
 
-    public static User getData(String username) throws SQLException{
+    public static User getData(String username) throws SQLException {
         pst = con.prepareStatement(getUserDetails);
         pst.setString(1, username);
         rs = pst.executeQuery();
@@ -39,15 +39,15 @@ class UserDAO{
         return user;
     }
 
-    public static int getUserid() throws SQLException{
+    public static int getUserid() throws SQLException {
         int userId = 0;
         st = con.createStatement();
         rs = st.executeQuery(getUserDetails);
-        if(rs.next()) userId = rs.getInt(1);
+        if (rs.next()) userId = rs.getInt(1);
         return userId++;
     }
 
-    public static User getLatestUser() throws SQLException{
+    public static User getLatestUser() throws SQLException {
         st = con.createStatement();
         rs = st.executeQuery(getLastRecord);
         rs.next();
@@ -55,21 +55,21 @@ class UserDAO{
         rs.close();
         return user;
     }
-    
-    public static Boolean checkUserExists() throws SQLException{
+
+    public static Boolean checkUserExists() throws SQLException {
         pst = con.prepareStatement(getUserDetails);
         pst.setString(1, username);
         rs = pst.executeQuery();
-        if(rs.next()) return true;
+        if (rs.next()) return true;
         return false;
     }
-    
-    public static Boolean authUser() throws SQLException{
+
+    public static Boolean authUser() throws SQLException {
         pst = con.prepareStatement(autheticateUser);
         pst.setString(1, username);
         pst.setString(2, password);
         rs = pst.executeQuery();
-        if(rs.next()) return true;
+        if (rs.next()) return true;
         return false;
     }
 }
