@@ -37,6 +37,7 @@ public class TransactionDAO extends DataAccessObject<Transaction> {
                 double winAmount = rs.getDouble("bet_amount");
 
                 Transaction transaction = new Transaction();
+
                 transaction.setId(id);
                 transaction.setUserId(userId);
                 transaction.setGameId(gameId);
