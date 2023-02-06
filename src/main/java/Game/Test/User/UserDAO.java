@@ -13,6 +13,7 @@ public class UserDAO extends DataAccessObject<User> {
     private static final String INSERT = "INSERT INTO userdetails (userid, username, name, password, wallet_amt) VALUES (?,?,?,?,?)";
     private static final String GET_ONE = "SELECT userid, username, name, password, wallet_amt FROM userdetails WHERE userid = ?";
     private static final String GET_NAME = "SELECT name FROM userdetails WHERE username = ?";
+    private static final String CHECK_USERNAME = "SELECT name FROM userdetails WHERE username = ?";
     private static final String CHECK_USER = "SELECT COUNT(*) FROM userdetails WHERE username= ? AND password= ?";
     private static final String GET_DETAILS = "SELECT userid, wallet_amt FROM userdetails WHERE username = ?";
     private static final String GET_WALLET_AMT = "select wallet_amt from userdetails where userid = ?";
@@ -55,6 +56,20 @@ public class UserDAO extends DataAccessObject<User> {
             statement.setDouble(5, dto.getWallet_amt());
             statement.execute();
             return this.findById(id);
+        }catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+    public boolean getUserName(String username) {
+        boolean result = false;
+        try(PreparedStatement statement = this.connection.prepareStatement(CHECK_USERNAME);){
+            statement.setString(1, username);
+            ResultSet rs = statement.executeQuery();
+            if(rs.next()) {
+                result = true;
+            }
+            return result;
         }catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

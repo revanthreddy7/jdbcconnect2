@@ -2,13 +2,14 @@ package Game.Test.Transaction;
 
 import Game.Test.util.DataTransferObject;
 
-import java.sql.Date;
+import java.util.Date;
+
 
 public class Transaction implements DataTransferObject {
     private long id;
     private long gameId;
     private long userId;
-    private Date dateTime;
+    private String dateTime;
     private double betAmount;
     private double winAmount;
 
@@ -37,11 +38,11 @@ public class Transaction implements DataTransferObject {
         this.userId = userId;
     }
 
-    public Date getDateTime() {
+    public String getDateTime() {
         return dateTime;
     }
 
-    public void setDateTime(Date dateTime) {
+    public void setDateTime(String dateTime) {
         this.dateTime = dateTime;
     }
 
