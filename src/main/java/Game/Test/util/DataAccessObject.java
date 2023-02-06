@@ -11,6 +11,7 @@ public abstract class DataAccessObject <T extends DataTransferObject> {
     protected final Connection connection;
     protected final static String LAST_VAL = "SELECT NEXT VALUE FOR ";
     protected final static String USER_SEQUENCE = "user_sequence";
+    protected final static String TRANSACTION_SEQUENCE = "transaction_sequence";
 
     public DataAccessObject(Connection connection) {
         super();
