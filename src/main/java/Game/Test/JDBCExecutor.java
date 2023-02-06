@@ -18,7 +18,7 @@ public class JDBCExecutor {
     static UserDAO userDAO;
     static GameDAO gameDAO;
     public static void main(String[] args) {
-        DatabaseConnectionManager dcm = new DatabaseConnectionManager("localhost", "1433", "Game", "sa", "$Fd524422");
+        DatabaseConnectionManager dcm = new DatabaseConnectionManager("localhost", "1433", "Game", "sa", "Password@10");
         try{
             connection = dcm.getConnection();
 
@@ -29,7 +29,6 @@ public class JDBCExecutor {
             // Taking input for the type of User
             System.out.println("Enter 1 if you are a new user");
             System.out.println("Enter 2 if you are existing user");
-            System.out.println("Enter 3 for testing");
 
             User user;
 
@@ -91,44 +90,6 @@ public class JDBCExecutor {
                 }
 
             }
-            else if (userType==3){
-//                System.out.println("Enter Number of rows to be tested: ");
-//                Scanner sc = new Scanner(System.in);
-//                int rows = sc.nextInt();
-//
-//                long start;
-//                long end;
-//                long execution;
-//
-//                // get the start time
-//                start = System.currentTimeMillis();
-//
-//                // call the method
-//                batchEnter1(rows);
-//
-//                // get the end time
-//                end = System.currentTimeMillis();
-//
-//                // execution time
-//                execution = end - start;
-//
-//                System.out.println("Execution time with trigger : " + execution);
-//
-//                // get the start time
-//                start = System.currentTimeMillis();
-//
-//                // call the method
-//                batchEnter2(rows);
-//
-//                // get the end time
-//                end = System.currentTimeMillis();
-//
-//                // execution time
-//                execution = end - start;
-
-//                System.out.println("Execution time without trigger : " + execution);
-
-            }
             else{
                 System.out.println("Enter the correct value!!!");
                 main(new String[]{"args"});
@@ -171,7 +132,7 @@ public class JDBCExecutor {
                     Arrays.asList("EURO", "USD", "INR", "POUND", "WON")
             );
 
-            currency = currencies.get(choice);
+            currency = currencies.get(choice-1);
 
             if(choice<1 || choice>5){
                 System.out.println("Please enter the correct input!!");
@@ -263,7 +224,6 @@ public class JDBCExecutor {
             }
 
         }
-//        statement.executeUpdate("UPDATE  userdetails SET wallet_amt = wallet_amt + " + winAmt);
         userDAO.updateWallet(userId);
         System.out.println(winAmt);
 

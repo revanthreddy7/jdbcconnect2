@@ -2,12 +2,13 @@ package Game.Test.User;
 
 import Game.Test.util.DataTransferObject;
 
-public class User implements DataTransferObject{
+public class User implements DataTransferObject {
     private long id;
     private String username;
     private String name;
     private String password;
     private double wallet_amt;
+
     @Override
     public long getId() {
         return id;
@@ -59,6 +60,5 @@ public class User implements DataTransferObject{
     public void setWallet_amt(double wallet_amt) {
         this.wallet_amt = wallet_amt;
     }
-
 
 }
