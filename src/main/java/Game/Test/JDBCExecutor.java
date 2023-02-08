@@ -42,98 +42,74 @@ public class JDBCExecutor {
             do {
                 int userType = scanner.nextInt();
                 if (userType == 1) {
-                    int amt = 0;
-                    int choice = 0;
-                    String name = "";
-                    String username = "";
-                    String pass = "";
-                    String repass = "";
-                    String currency = "";
-
-                    try{
-                        boolean check = false;
+                    try {
+                        String createUserOutput = "";
                         do {
+                            // Taking user inputs
+                            int amt = 0;
+                            String name = "";
+                            String username = "";
+                            String pass = "";
+                            String repass = "";
+                            int currencyChoice = 0;
+
                             System.out.println("Enter the name: ");
                             name = scanner.next();
-
                             System.out.println("Enter the username: ");
                             username = scanner.next();
-                            if(username.length()<3 ){
-                                System.out.println("Username length should be greater than 3");
-                                check = true;
-                                continue;
-                            }else if(userDAO.getUserName(username)){
-                                System.out.println("Username already exists! Please use a different one");
-                                check = true;
-                                continue;
-                            }
-                            boolean hasDigit = false;
-                            boolean hasAlphabet = false;
-
-                            for (int i = 0; i < username.length(); i++) {
-                                char f = username.charAt(i);
-
-                                if(Character.isDigit(f)) hasDigit = true;
-                                if(Character.isAlphabetic(f)) hasAlphabet = true;
-                            }
-                            if (!hasDigit || !hasAlphabet){
-                                System.out.println("Please Include a minimum of 1 Digit 1 Alphabet in the Username");
-                                check = true;
-                                continue;
-                            }
                             System.out.println("Enter the Password: ");
                             pass = scanner.next();
-
                             System.out.println("Enter the Password again: ");
                             repass = scanner.next();
-
-                            if (pass.length() <= 8) {
-                                System.out.println("Passwords should have a minimum of 8 characters");
-                                check = true;
-                                continue;
-                            }else if (!pass.equals(repass)) {
-                                System.out.println("Passwords do not match");
-                                check = true;
-                                continue;
-                            }
-
                             System.out.println("Enter the wallet Amount: ");
                             amt = scanner.nextInt();
-
                             System.out.println("Enter Your Choice of Currency:1:EURO, 2:USD, 3:INR, 4:POUND, 5:WON");
-                            choice = scanner.nextInt();
-                            ArrayList<String> currencies = new ArrayList<>(
-                                    Arrays.asList("EURO", "USD", "INR", "POUND", "WON")
-                            );
+                            currencyChoice = scanner.nextInt();
 
-                            currency = currencies.get(choice - 1);
-                            if(choice < 1 || choice >5){
-                                System.out.println("Please enter the correct input!!");
-                                check = true;
-                                continue;
-                            }
-                            setUpUser(username, name, pass, amt, currency);
+                            // Creating a new user and returning a String to see the result.
+                            createUserOutput = createUser(name, username, pass, repass, amt, currencyChoice);
+                            System.out.println(createUserOutput);
 
-                            check = false;
-                        }while(check);
+                        }while(!createUserOutput.equals("User Created Successfully")); // This condition checks if user created successfully or not
+
+                        System.out.println(createUserOutput);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        throw new RuntimeException(e);
                     }
-                    catch (Exception e){
-                        System.err.println(e);
-//                        setUpUser(user);
+                } else if (userType == 2) {
+
+                    String userAuthorised = "";
+                    int queryCount = 0;  // to maintain number of attempts to type passwords.
+
+                    String username = "";
+                    String password = "";
+                    do {
+                        // Taking user input
+                        System.out.print("Enter username : ");
+                        username = scanner.next();
+
+                        System.out.print("Enter Password : ");
+                        password = scanner.next();
+
+                        // Authorization of user.
+                        userAuthorised = authUser(username, password);
+
+                        queryCount++;
+                    } while (queryCount < 3 && userAuthorised.equals("Wrong password Enter password again")); // Checking that password can be entered again.
+
+                    if(userAuthorised.equals("User Authorized Successfully")){ // verify that user is authorized
+
+                        double[] details = userDAO.getDetails(username); // get userid and wallet amount
+                        String name = userDAO.getName(username); // get name of user
+
+                        long userId = (long) details[0];
+                        double wallet_amount = details[1];
+
+                        displayAll(name, wallet_amount, username); // display user information
+                        gameOptions(userId); // play the game
                     }
-
-
-
-
-                }
-
-                else if (userType == 2) {
-                    System.out.print("Enter username : ");
-                    String usernameLogin = scanner.next();
-                    System.out.print("Enter Password : ");
-
-                    String passwordLogin = scanner.next();
-                    authUser(usernameLogin, passwordLogin);
                 } else {
                     System.out.println("Enter the correct value!!!");
                     checkInput = true;
@@ -144,57 +120,75 @@ public class JDBCExecutor {
             e.printStackTrace();
         }
     }
-    public static void setUpUser( String username, String name, String pass, int amt, String currency ) throws Exception {
 
+    // Method to create and add a new user to database.
+    public static String createUser(String name, String username, String pass, String repass, int currencyChoice, int amt) throws Exception {
         User user = new User();
+        String currency = "";
+        try{
+            if(username.length()<3 ){
+                return "Username length should be greater than 3";
+            }else if(userDAO.getUserName(username)){
+                return "Username already exists! Please use a different one";
+            }
+            boolean hasDigit = false;
+            boolean hasAlphabet = false;
 
+            for (int i = 0; i < username.length(); i++) {
+                char f = username.charAt(i);
 
+                if(Character.isDigit(f)) hasDigit = true;
+                if(Character.isAlphabetic(f)) hasAlphabet = true;
+            }
+            if (!hasDigit || !hasAlphabet){
+                return "Please Include a minimum of 1 Digit 1 Alphabet in the Username";
+            }
+            if (pass.length() <= 8) {
+                return "Passwords should have a minimum of 8 characters";
+            }else if (!pass.equals(repass)) {
+                return "Passwords do not match";
+            }
+            ArrayList<String> currencies = new ArrayList<>(
+                    Arrays.asList("EURO", "USD", "INR", "POUND", "WON")
+            );
+
+            currency = currencies.get(currencyChoice - 1);
+            if(currencyChoice < 1 || currencyChoice >5){
+                return "Please enter the correct input!!";
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         user.setUsername(username);
         user.setName(name);
         user.setPassword(encrypt(pass));
         user.setWallet_amt(getBalance(amt, currency));
         user = userDAO.create(user);
+        return "User Created Successfully";
     }
 
-    public static void authUser(String username, String password) {
+    // method to authorize the user.
+    public static String authUser(String username, String password){
         try {
-
-
             String name = userDAO.getName(username);
-
             if (name.compareTo("") != 0) {
-                int queryCount = 0;
                 boolean passwordMatched = false;
-                do {
-                    if (!userDAO.checkUser(username, encrypt(password))) {
-                        System.out.print("Wrong password Enter password again \n");
-                    } else {
-                        passwordMatched = true;
-                    }
-                    queryCount++;
-                } while (queryCount < 3 && !passwordMatched);
-
-
-                if (passwordMatched) {
-                    double[] details = userDAO.getDetails(username);
-
-                    long userId = (long) details[0];
-                    double wallet_amount = details[1];
-
-                    displayAll(name, wallet_amount, username);
-
-                    gameOptions(userId);
-                } else {
-                    System.out.print("You exceeded password limit \n");
+                if (!userDAO.checkUser(username, encrypt(password))) {
+                    return "Wrong password Enter password again";
                 }
+                return "User Authorized Successfully";
             } else {
-                System.out.print("No such username exists. Create an Account ");
+                return "No such username exists. Create an Account ";
             }
         }
         catch (Exception e){
-            System.err.println(e);
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
+
+    // method to get convert wallet amount to required type
     static double getBalance(double wallet_amt , String currency){
 
         if( currency.equalsIgnoreCase("USD") )return wallet_amt * 0.92 ;
@@ -205,6 +199,8 @@ public class JDBCExecutor {
         return wallet_amt ;
     }
 
+
+    // method to play game
     static void gameOptions(long userId){
         int option = -1 ;
         double winAmt = 0;
@@ -215,7 +211,6 @@ public class JDBCExecutor {
         }catch ( Exception e ){
             System.out.print("Thanks for visiting our casino \n");
             return ;
-
         }
         if( option == 1 ) {
             System.out.print("Enter 1 if you want to play Roulette \n");
@@ -260,13 +255,9 @@ public class JDBCExecutor {
             Games game = new Games(betAmount, gameCondition);
 
             if (gameId == 1) {
-
                 winAmt = game.playRoulette();
-
             } else if (gameId == 2) {
-
                 winAmt = game.playDice();
-
             }
             // Update User Waller Amount
             userDAO.updateWallet(winAmt);
@@ -293,24 +284,22 @@ public class JDBCExecutor {
 
             System.out.println("Enter 2 you want to play or anything else to exit");
 
-
             try {
                 int exit = scanner.nextInt();
                 if (exit == 1) {
                     //transaction history.
                     transactionHistory(userId);
-
                 }
                 if (exit == 2) {
                     gameOptions(userId);
                 }
-
-
             } catch (Exception e) {
                 System.out.print("Thanks for visiting our casino \n");
             }
         }
     }
+
+    // method to show transaction history
     static void transactionHistory(long userId){
         List<Transaction> transactionList = transactionDAO.betHistory(userId);
         transactionList.forEach(System.out::println);
@@ -348,6 +337,7 @@ public class JDBCExecutor {
 
         return new String(decValue);
     }
+    // method to display user information
     public static void displayAll(String name, double wallet_amount, String username){
         System.out.println("***-------****-------***");
         System.out.print("Name          : " + name + "\n" ) ;
