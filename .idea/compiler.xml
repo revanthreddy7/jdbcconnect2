@@ -14,7 +14,6 @@
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="jdbcconnect2" target="17" />
-      <module name="TestGame" target="17" />
     </bytecodeTargetLevel>
   </component>
 </project>
