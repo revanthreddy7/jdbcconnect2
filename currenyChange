@@ -1,0 +1,52 @@
+
+
+
+ static double getBalance() throws  Exception{
+        // Declare this as class static variable ;
+        /*static double dollarToEuro = 0.0 ;
+        static double rupeeToEuro = 0.0 ;
+        static double yenToEuro = 0.0 ;
+        static double wonToEuro = 0.0 ;
+
+         */
+
+        //Put this on main methos
+        /*
+         ResultSet resultSet = statement.executeQuery("SELECT multiplier FROM currencyValue ") ;
+
+        while (resultSet.next() ){
+            dollarToEuro = resultSet.getDouble(1) ;
+            if( resultSet.next() )rupeeToEuro  = resultSet.getDouble(1) ;
+            if( resultSet.next() )wonToEuro = resultSet.getDouble( 1 ) ;
+            if( resultSet.next() )yenToEuro = resultSet.getDouble(1) ;
+
+        }
+         */
+
+        // create one database table and insert data
+
+        /*
+
+            CREATE TABLE currencyValue( currency varchar(20) PRIMARY KEY , multiplier DECIMAL(5 , 5 )  ) ;
+
+              INSERT INTO currencyValue VALUES( 'dollar' , 0.0071 ) ,
+							('rupee' , 0.00075 ) ,
+							('won' , 0.00075) ,
+							('yen' , 0.0071);
+         */
+
+        System.out.print("Enter Amount ");
+        double balance = sc.nextDouble() ;
+
+        System.out.print("Enter Currency 1 -> Dollar 2-> Rupee 3 -> Yen 4 -> Won 5  -> Euro ");
+        int currency = sc.nextInt() ;
+
+        if( currency == 1 ) return balance * dollarToEuro ;
+        else if( currency == 2 )return balance * rupeeToEuro ;
+        else if( currency == 3 )return balance * yenToEuro ;
+        else if( currency == 4 )return balance * wonToEuro ;
+        else if( currency == 5 )return balance ;
+
+        return balance ;
+
+    }
