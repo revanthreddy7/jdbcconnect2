@@ -24,8 +24,40 @@ public class JDBCExecutor {
     static UserDAO userDAO;
     static GameDAO gameDAO;
     static TransactionDAO transactionDAO;
+    
+    static double usdToEuro = 0.0 ;
+    static double inrToEuro = 0.0 ;
+    static double poundToEuro = 0.0 ;
+    static double wonToEuro = 0.0 ;
+    
+    
+    
     public static void main(String[] args) {
         DatabaseConnectionManager dcm = new DatabaseConnectionManager("localhost", "1433", "Game", "sa", "$Fd524422");
+        
+        //create a new table using 
+        /*
+         REATE TABLE currencyValue( currency varchar(20) PRIMARY KEY , multiplier DECIMAL(20 , 5 )  ) ;
+
+		INSERT INTO currencyValue VALUES( 'usd' , 0.92 ) ,
+							('inr' , 0.011 ) , 
+							('pound' ,1.13 ) , 
+							('won' , 0.00075);
+         */
+        
+        
+        
+        ResultSet resultSet = statement.executeQuery("SELECT * FROM currencyValue ") ;
+
+        while (resultSet.next() ){
+            if(resultSet.getString(1).equalsIgnoreCase("usd"))usdToEuro = resultSet.getDouble(2) ;
+            if( resultSet.getString(1).equalsIgnoreCase("inr") )inrToEuro  = resultSet.getDouble(2) ;
+            if( resultSet.getString(1).equalsIgnoreCase("pound") )poundToEuro = resultSet.getDouble( 2 ) ;
+            if( resultSet.getString(1).equalsIgnoreCase("won") )wonToEuro = resultSet.getDouble(2) ;
+
+        }
+        
+        
         try{
             connection = dcm.getConnection();
 
@@ -191,12 +223,14 @@ public class JDBCExecutor {
     // method to get convert wallet amount to required type
     static double getBalance(double wallet_amt , String currency){
 
-        if( currency.equalsIgnoreCase("USD") )return wallet_amt * 0.92 ;
-        else if( currency.equalsIgnoreCase("INR") )return wallet_amt * 0.011 ;
-        else if( currency.equalsIgnoreCase("POUND") )return wallet_amt * 0.0071 ;
-        else if( currency.equalsIgnoreCase("WON") )return wallet_amt * 0.00075 ;
-
-        return wallet_amt ;
+    	if( currency.equalsIgnoreCase('usd') )wallet_amt *= usdToEuro ;
+    	else if( currency.equalsIgnoreCase('inr'))wallet_amt *=  inrToEuro ;
+    	else if( currency.equalsIgnoreCase('pound'))wallet_amt *=  poundToEuro ;
+    	else if( currency.equalsIgnoreCase('won'))wallet_amt *=  wonToEuro ;
+    	
+    	return wallet_amt  ;
+    	
+    	
     }
 
 
