@@ -67,7 +67,7 @@ public class JDBCExecutor {
                             currencyChoice = scanner.nextInt();
 
                             // Creating a new user and returning a String to see the result.
-                            createUserOutput = createUser(name, username, pass, repass, amt, currencyChoice);
+                            createUserOutput = createUser(name, username, pass, repass, currencyChoice, amt);
                             System.out.println(createUserOutput);
 
                         }while(!createUserOutput.equals("User Created Successfully")); // This condition checks if user created successfully or not
