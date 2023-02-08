@@ -223,10 +223,10 @@ public class JDBCExecutor {
     // method to get convert wallet amount to required type
     static double getBalance(double wallet_amt , String currency){
 
-    	if( currency.equalsIgnoreCase('usd') )wallet_amt *= usdToEuro ;
-    	else if( currency.equalsIgnoreCase('inr'))wallet_amt *=  inrToEuro ;
-    	else if( currency.equalsIgnoreCase('pound'))wallet_amt *=  poundToEuro ;
-    	else if( currency.equalsIgnoreCase('won'))wallet_amt *=  wonToEuro ;
+    	if( currency.equalsIgnoreCase("usd") )wallet_amt *= usdToEuro ;
+    	else if( currency.equalsIgnoreCase("inr"))wallet_amt *=  inrToEuro ;
+    	else if( currency.equalsIgnoreCase("pound"))wallet_amt *=  poundToEuro ;
+    	else if( currency.equalsIgnoreCase("won"))wallet_amt *=  wonToEuro ;
     	
     	return wallet_amt  ;
     	
