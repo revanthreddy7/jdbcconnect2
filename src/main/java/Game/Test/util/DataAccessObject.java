@@ -9,9 +9,9 @@ import java.util.ArrayList;
 public abstract class DataAccessObject <T extends DataTransferObject> {
 
     protected final Connection connection;
-    protected final static String LAST_VAL = "SELECT NEXT VALUE FOR ";
-    protected final static String USER_SEQUENCE = "user_sequence";
-    protected final static String TRANSACTION_SEQUENCE = "transaction_sequence";
+    protected final static String LAST_VAL = "SELECT TOP 1 id FROM ";
+    protected final static String USER_TABLE = "userdetails ORDER BY id DESC";
+    protected final static String TRANSACTION_TABLE = "transaction_details ORDER BY id DESC";
 
     public DataAccessObject(Connection connection) {
         super();
@@ -20,13 +20,13 @@ public abstract class DataAccessObject <T extends DataTransferObject> {
 
     public abstract T findById(long id);
     public abstract ArrayList<T> findAll();
-    public abstract T create(T dto);
+    public abstract void create(T dto);
     public abstract T update(T dto);
     public abstract void delete(long id);
 
-    protected int getLastVal(String sequence){
+    protected int getLastVal(String table){
         int key = 0;
-        String sql = LAST_VAL + sequence;
+        String sql = LAST_VAL + table;
         try {
             Statement statement = connection.createStatement();
             ResultSet rs = statement.executeQuery(sql);

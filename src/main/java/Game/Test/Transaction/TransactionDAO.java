@@ -11,9 +11,9 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class TransactionDAO extends DataAccessObject<Transaction> {
-    private static final String INSERT = "INSERT INTO transaction_details (tid, uid, gid, tdatetime, bet_amount, win_amount) VALUES (?,?,?,convert(datetime, ?, 5),?,?)";
-    private static final String HISTORY = "SELECT tid, uid, gid, tdatetime, bet_amount, win_amount FROM transaction_details WHERE uid = ?";
-    private static final String GET_ONE_T = "SELECT tid, uid, gid, tdatetime, bet_amount, win_amount FROM transaction_details WHERE tid = ?";
+    private static final String INSERT = "INSERT INTO transaction_details (uid, gid, tdatetime, bet_amount, win_amount) VALUES (?,?,convert(datetime, ?, 5),?,?)";
+    private static final String HISTORY = "SELECT id, uid, gid, tdatetime, bet_amount, win_amount FROM transaction_details WHERE uid = ?";
+    private static final String GET_ONE_T = "SELECT id, uid, gid, tdatetime, bet_amount, win_amount FROM transaction_details WHERE id = ?";
     public TransactionDAO(Connection connection){super(connection);}
     @Override
     public Transaction findById(long id) {
@@ -22,7 +22,7 @@ public class TransactionDAO extends DataAccessObject<Transaction> {
             statement.setLong(1, id);
             ResultSet rs = statement.executeQuery();
             while(rs.next()) {
-                transaction.setId(rs.getLong("tid"));
+                transaction.setId(rs.getLong("id"));
                 transaction.setUserId(rs.getLong("uid"));
                 transaction.setGameId(rs.getLong("gid"));
                 transaction.setDateTime(rs.getString("tdatetime"));
@@ -47,7 +47,7 @@ public class TransactionDAO extends DataAccessObject<Transaction> {
             statement.setLong(1, userId);
             ResultSet rs = statement.executeQuery();
             while(rs.next()) {
-                long id = rs.getLong("tid");
+                long id = rs.getLong("id");
                 long gameId = rs.getLong("gid");
                 String datetime = rs.getString("tdatetime");
                 double betAmount = rs.getDouble("bet_amount");
@@ -71,17 +71,14 @@ public class TransactionDAO extends DataAccessObject<Transaction> {
         }
     }
     @Override
-    public Transaction create(Transaction dto) {
+    public void create(Transaction dto) {
         try(PreparedStatement statement = this.connection.prepareStatement(INSERT);){
-            long id = getLastVal(TRANSACTION_SEQUENCE);
-            statement.setLong(1, id);
-            statement.setLong(2, dto.getUserId());
-            statement.setLong(3, dto.getGameId());
-            statement.setString(4, dto.getDateTime());
-            statement.setDouble(5, dto.getBetAmount());
-            statement.setDouble(6, dto.getWinAmount());
+            statement.setLong(1, dto.getUserId());
+            statement.setLong(2, dto.getGameId());
+            statement.setString(3, dto.getDateTime());
+            statement.setDouble(4, dto.getBetAmount());
+            statement.setDouble(5, dto.getWinAmount());
             statement.execute();
-            return this.findById(id);
         }catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

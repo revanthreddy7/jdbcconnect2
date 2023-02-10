@@ -37,8 +37,8 @@ public class GameDAO extends DataAccessObject<Game> {
     }
 
     @Override
-    public Game create(Game dto) {
-        return null;
+    public void create(Game dto) {
+        return ;
     }
 
     @Override

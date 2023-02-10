@@ -1,14 +1,9 @@
 package Game.Test;
 
+import Game.Test.Currency.CurrencyDAO;
 import Game.Test.Transaction.*;
 import Game.Test.User.*;
 import Game.Test.game.*;
-
-
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -16,54 +11,30 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class JDBCExecutor {
-
-    private static final String ALGORITHM = "AES";
-    private static final byte[] KEY = "MySuperSecretKey".getBytes(StandardCharsets.UTF_8);
     static Scanner scanner;
     static Connection connection;
-    static UserDAO userDAO;
     static GameDAO gameDAO;
     static TransactionDAO transactionDAO;
-    
-    static double usdToEuro = 0.0 ;
-    static double inrToEuro = 0.0 ;
-    static double poundToEuro = 0.0 ;
-    static double wonToEuro = 0.0 ;
-    
-    
-    
+    static CurrencyDAO currencyDAO;
+    static HashMap<String, Double> currencyList;
+
+    static Map<Integer, String> validationCodes = Map.of(1, "Username length should be greater than 3",
+                                                        2, "Username already exists! Please use a different one",
+                                                        3, "Please Include a minimum of 1 Digit 1 Alphabet in the Username",
+                                                        4, "Passwords should have a minimum of 8 characters",
+                                                        5, "Passwords do not match",
+                                                        6, "Please enter the correct input",
+                                                        7, "Validated");
+
     public static void main(String[] args) {
         DatabaseConnectionManager dcm = new DatabaseConnectionManager("localhost", "1433", "Game", "sa", "$Fd524422");
-        
-        //create a new table using 
-        /*
-         REATE TABLE currencyValue( currency varchar(20) PRIMARY KEY , multiplier DECIMAL(20 , 5 )  ) ;
-
-		INSERT INTO currencyValue VALUES( 'usd' , 0.92 ) ,
-							('inr' , 0.011 ) , 
-							('pound' ,1.13 ) , 
-							('won' , 0.00075);
-         */
-        
-        
-        
-        ResultSet resultSet = statement.executeQuery("SELECT * FROM currencyValue ") ;
-
-        while (resultSet.next() ){
-            if(resultSet.getString(1).equalsIgnoreCase("usd"))usdToEuro = resultSet.getDouble(2) ;
-            if( resultSet.getString(1).equalsIgnoreCase("inr") )inrToEuro  = resultSet.getDouble(2) ;
-            if( resultSet.getString(1).equalsIgnoreCase("pound") )poundToEuro = resultSet.getDouble( 2 ) ;
-            if( resultSet.getString(1).equalsIgnoreCase("won") )wonToEuro = resultSet.getDouble(2) ;
-
-        }
-        
-        
         try{
             connection = dcm.getConnection();
-
-            userDAO = new UserDAO(connection);
             gameDAO = new GameDAO(connection);
             transactionDAO = new TransactionDAO(connection);
+            currencyDAO = new CurrencyDAO(connection);
+            currencyList = currencyDAO.getAll();
+            UserServices userServices = new UserServices(connection);
             scanner = new Scanner(System.in);
 
             // Taking input for the type of User
@@ -75,7 +46,7 @@ public class JDBCExecutor {
                 int userType = scanner.nextInt();
                 if (userType == 1) {
                     try {
-                        String createUserOutput = "";
+                        boolean userCreated = false;
                         do {
                             // Taking user inputs
                             int amt = 0;
@@ -98,21 +69,18 @@ public class JDBCExecutor {
                             System.out.println("Enter Your Choice of Currency:1:EURO, 2:USD, 3:INR, 4:POUND, 5:WON");
                             currencyChoice = scanner.nextInt();
 
-                            // Creating a new user and returning a String to see the result.
-                            createUserOutput = createUser(name, username, pass, repass, currencyChoice, amt);
-                            System.out.println(createUserOutput);
+                            userServices.setUser(username);
+                            // Creating a new user and returning the user.
+                            userCreated = createUser(name, username, pass, repass, currencyChoice, amt);
 
-                        }while(!createUserOutput.equals("User Created Successfully")); // This condition checks if user created successfully or not
-
-                        System.out.println(createUserOutput);
+                        } while(!userCreated); // This condition checks if user created successfully or not
 
                     } catch (Exception e) {
                         e.printStackTrace();
                         throw new RuntimeException(e);
                     }
                 } else if (userType == 2) {
-
-                    String userAuthorised = "";
+                    boolean userAuthorised = false;
                     int queryCount = 0;  // to maintain number of attempts to type passwords.
 
                     String username = "";
@@ -125,23 +93,33 @@ public class JDBCExecutor {
                         System.out.print("Enter Password : ");
                         password = scanner.next();
 
+                        userServices.setUser(username);
                         // Authorization of user.
-                        userAuthorised = authUser(username, password);
-
+                        userAuthorised = AuthenticationService.Authenticate(username, password);
                         queryCount++;
-                    } while (queryCount < 3 && userAuthorised.equals("Wrong password Enter password again")); // Checking that password can be entered again.
+                        if(!userAuthorised) System.out.println("Wrong Details!");
+                    } while (queryCount < 3 && !userAuthorised); // Checking if user can try again.
+                    if(userAuthorised){ // verify that user is authorized
 
-                    if(userAuthorised.equals("User Authorized Successfully")){ // verify that user is authorized
-
-                        double[] details = userDAO.getDetails(username); // get userid and wallet amount
-                        String name = userDAO.getName(username); // get name of user
-
-                        long userId = (long) details[0];
-                        double wallet_amount = details[1];
-
-                        displayAll(name, wallet_amount, username); // display user information
-                        gameOptions(userId); // play the game
-                    }
+                        System.out.println("User is authorized");
+                        UserServices.displayUserInfo(); // display user information
+                        int exit = -1;
+                        do {
+                            gameOptions();
+                            try {
+                                exit = scanner.nextInt();
+                                if (exit == 1) {
+                                    //transaction history.
+                                    transactionHistory(UserServices.getUserId());
+                                    System.out.println("Enter 2 you want to play or anything else to exit");
+                                    exit = scanner.nextInt();
+                                }
+                            } catch (Exception e) {
+                                System.out.print("Thanks for visiting our casino \n");
+                                return;
+                            }
+                        }while(exit == 2);
+                    }else System.out.println("You have exceeded the maximum number of attempts");
                 } else {
                     System.out.println("Enter the correct value!!!");
                     checkInput = true;
@@ -154,115 +132,57 @@ public class JDBCExecutor {
     }
 
     // Method to create and add a new user to database.
-    public static String createUser(String name, String username, String pass, String repass, int currencyChoice, int amt) throws Exception {
+    public static boolean createUser(String name, String username, String pass, String repass, int currencyChoice, int amt) throws Exception {
         User user = new User();
         String currency = "";
-        try{
-            if(username.length()<3 ){
-                return "Username length should be greater than 3";
-            }else if(userDAO.getUserName(username)){
-                return "Username already exists! Please use a different one";
-            }
-            boolean hasDigit = false;
-            boolean hasAlphabet = false;
-
-            for (int i = 0; i < username.length(); i++) {
-                char f = username.charAt(i);
-
-                if(Character.isDigit(f)) hasDigit = true;
-                if(Character.isAlphabetic(f)) hasAlphabet = true;
-            }
-            if (!hasDigit || !hasAlphabet){
-                return "Please Include a minimum of 1 Digit 1 Alphabet in the Username";
-            }
-            if (pass.length() <= 8) {
-                return "Passwords should have a minimum of 8 characters";
-            }else if (!pass.equals(repass)) {
-                return "Passwords do not match";
-            }
+        int validationCode = AuthenticationService.Validate(username, pass, repass, currencyChoice);
+        if(validationCode == 7) {
             ArrayList<String> currencies = new ArrayList<>(
-                    Arrays.asList("EURO", "USD", "INR", "POUND", "WON")
+                    Arrays.asList("euro", "usd", "inr", "pound", "won")
             );
-
             currency = currencies.get(currencyChoice - 1);
-            if(currencyChoice < 1 || currencyChoice >5){
-                return "Please enter the correct input!!";
-            }
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-        user.setUsername(username);
-        user.setName(name);
-        user.setPassword(encrypt(pass));
-        user.setWallet_amt(getBalance(amt, currency));
-        user = userDAO.create(user);
-        return "User Created Successfully";
-    }
-
-    // method to authorize the user.
-    public static String authUser(String username, String password){
-        try {
-            String name = userDAO.getName(username);
-            if (name.compareTo("") != 0) {
-                boolean passwordMatched = false;
-                if (!userDAO.checkUser(username, encrypt(password))) {
-                    return "Wrong password Enter password again";
-                }
-                return "User Authorized Successfully";
-            } else {
-                return "No such username exists. Create an Account ";
-            }
-        }
-        catch (Exception e){
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            user.setUsername(username);
+            user.setName(name);
+            user.setPassword(AuthenticationService.encrypt(pass));
+            user.setWallet_amt(getBalance(amt, currency));
+            UserServices.createUser(user);
+            return true;
+        }else{
+            System.out.println(validationCodes.get(validationCode));
+            return false;
         }
     }
 
     // method to get convert wallet amount to required type
     static double getBalance(double wallet_amt , String currency){
-
-    	if( currency.equalsIgnoreCase("usd") )wallet_amt *= usdToEuro ;
-    	else if( currency.equalsIgnoreCase("inr"))wallet_amt *=  inrToEuro ;
-    	else if( currency.equalsIgnoreCase("pound"))wallet_amt *=  poundToEuro ;
-    	else if( currency.equalsIgnoreCase("won"))wallet_amt *=  wonToEuro ;
-    	
-    	return wallet_amt  ;
-    	
-    	
+        return wallet_amt*currencyList.get(currency);
     }
 
-
-    // method to play game
-    static void gameOptions(long userId){
-        int option = -1 ;
+    // Cant write test cases for this method, Only to take user inputs. Too lengthy to put in Main.
+    static void gameOptions() {
+        int option = -1;
         double winAmt = 0;
         System.out.print("Enter 1 if you want to play Game\n");
         System.out.print("Enter Any Key to exit");
         try {
-            option = scanner.nextInt() ;
-        }catch ( Exception e ){
-            System.out.print("Thanks for visiting our casino \n");
-            return ;
+            option = scanner.nextInt();
+        } catch (Exception e) {
+            return;
         }
-        if( option == 1 ) {
+        if (option == 1) {
             System.out.print("Enter 1 if you want to play Roulette \n");
             System.out.print("Enter 2 if you want to play Dice \n");
             System.out.print("Enter Any other key to exit ");
-
-            int gameId = 0;
+            int gameId;
             try {
                 gameId = scanner.nextInt();
             } catch (Exception e) {
-                System.out.print("Thanks for visiting our casino \n");
                 return;
             }
-
-            double wallet_amt = userDAO.getWalletAmt(userId);
+            double wallet_amt = UserServices.getWalletAmount();
             int[] limits = gameDAO.getLimits(gameId);
             int minAmount = limits[0], maxAmount = limits[1];
-            double betAmount = 0;
+            double betAmount;
             do {
                 System.out.print("Your wallet amount is " + wallet_amt + "\n");
                 System.out.print("Enter Your bet amount in the range ( " + minAmount + " - " + maxAmount + " ) : ");
@@ -276,107 +196,58 @@ public class JDBCExecutor {
             System.out.print("Enter 3 for selecting your own digit\n");
             System.out.print("Enter any other key to exit");
 
-            int gameCondition = 0;
+            int gameCondition;
 
             try {
                 gameCondition = scanner.nextInt();
 
             } catch (Exception e) {
-                System.out.print("Thanks for visiting our casino \n");
                 return;
             }
-
-            Games game = new Games(betAmount, gameCondition);
-
-            if (gameId == 1) {
-                winAmt = game.playRoulette();
-            } else if (gameId == 2) {
-                winAmt = game.playDice();
-            }
-            // Update User Waller Amount
-            userDAO.updateWallet(winAmt);
-            System.out.println(winAmt);
-
-            double availableAmount = userDAO.getWalletAmt(userId);
-            System.out.print("Available Amount : " + availableAmount + "\n");
-
-            // Add Transaction to Table
-            LocalDateTime now = LocalDateTime.now();
-            DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yy hh:mm:ss");
-
-            Transaction transaction = new Transaction();
-            transaction.setUserId(userId);
-            transaction.setGameId(gameId);
-            transaction.setDateTime(now.format(format));
-            transaction.setBetAmount(betAmount);
-            transaction.setWinAmount(winAmt);
-            transaction = transactionDAO.create(transaction);
-
+            playGame(UserServices.getUserId(), gameId, betAmount, gameCondition);
             System.out.println("Do you want to play another game?");
-
             System.out.print("Enter 1 if you want to see your transaction history\n");
-
             System.out.println("Enter 2 you want to play or anything else to exit");
-
-            try {
-                int exit = scanner.nextInt();
-                if (exit == 1) {
-                    //transaction history.
-                    transactionHistory(userId);
-                }
-                if (exit == 2) {
-                    gameOptions(userId);
-                }
-            } catch (Exception e) {
-                System.out.print("Thanks for visiting our casino \n");
-            }
         }
+    }
+
+    // method to play game
+    static void playGame(long userId, long gameId, double betAmount, int gameCondition){
+
+        double winAmt = 0;
+        Games game = new Games(betAmount, gameCondition);
+        if (gameId == 1) {
+            winAmt = game.playRoulette();
+        } else if (gameId == 2) {
+            winAmt = game.playDice();
+        }
+        System.out.println("Win Amount : " + winAmt);
+        // Update User Waller Amount
+        if(winAmt == 0) {
+            winAmt -= betAmount;
+        }
+        UserServices.updateWalletAmount(winAmt);
+
+
+        double availableAmount = UserServices.getWalletAmount();
+        System.out.print("Available Amount : " + availableAmount + "\n");
+
+        // Add Transaction to Table
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yy hh:mm:ss");
+
+        Transaction transaction = new Transaction();
+        transaction.setUserId(userId);
+        transaction.setGameId(gameId);
+        transaction.setDateTime(now.format(format));
+        transaction.setBetAmount(betAmount);
+        transaction.setWinAmount(winAmt);
+        transactionDAO.create(transaction);
     }
 
     // method to show transaction history
     static void transactionHistory(long userId){
         List<Transaction> transactionList = transactionDAO.betHistory(userId);
         transactionList.forEach(System.out::println);
-        System.out.println("Type a number to play");
-        System.out.print("Anything else to exit: ");
-        try {
-            scanner.nextInt();
-            gameOptions(userId);
-        }
-        catch (Exception e) {
-            System.out.print("Thanks for visiting our casino \n");
-        }
-    }
-
-    //Encryption
-    public static String encrypt(String pwd) throws Exception{
-        Key key = new SecretKeySpec(KEY, ALGORITHM);
-        Cipher c = Cipher.getInstance(ALGORITHM);
-        c.init(Cipher.ENCRYPT_MODE, key);
-
-        byte[] encValue = c.doFinal(pwd.getBytes());
-        byte[] encryptedValue64 = Base64.getEncoder().encode(encValue);
-
-        return new String(encryptedValue64);
-    }
-
-    //Decryption
-    public static String decrypt(String encrypt) throws Exception{
-        Key key = new SecretKeySpec(KEY, ALGORITHM);
-        Cipher c = Cipher.getInstance(ALGORITHM);
-        c.init(Cipher.DECRYPT_MODE, key);
-
-        byte[] decodedValue64 = Base64.getDecoder().decode(encrypt.getBytes());
-        byte[] decValue = c.doFinal(decodedValue64);
-
-        return new String(decValue);
-    }
-    // method to display user information
-    public static void displayAll(String name, double wallet_amount, String username){
-        System.out.println("***-------****-------***");
-        System.out.print("Name          : " + name + "\n" ) ;
-        System.out.print("Username      : " + username + "\n" ) ;
-        System.out.print("Wallet Amount : " + wallet_amount + "\n" ) ;
-        System.out.println("***-------****-------***");
     }
 }
