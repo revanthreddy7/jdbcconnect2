@@ -3,7 +3,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 
 @DisplayName("User Test")
-@ExtendWith(UserParameterResolver.class)
+@ExtendWith(TransactionParameterResolver.class)
 public class TransactionTest {
 
 
