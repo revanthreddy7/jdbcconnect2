@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class CurrencyServices {
+    private static Currency currency;
     private static CurrencyDAO currencyDAO;
 
     public CurrencyServices(Connection connection) {
