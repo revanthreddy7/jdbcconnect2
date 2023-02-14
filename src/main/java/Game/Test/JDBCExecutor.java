@@ -1,6 +1,6 @@
 package Game.Test;
 
-import Game.Test.Currency.CurrencyDAO;
+import Game.Test.Currency.CurrencyServices;
 import Game.Test.Transaction.*;
 import Game.Test.User.*;
 import Game.Test.game.*;
@@ -15,7 +15,7 @@ public class JDBCExecutor {
     static Connection connection;
     static GameDAO gameDAO;
     static TransactionDAO transactionDAO;
-    static CurrencyDAO currencyDAO;
+    static CurrencyServices currencyServices;
     static HashMap<String, Double> currencyList;
 
     static Map<Integer, String> validationCodes = Map.of(1, "Username length should be greater than 3",
@@ -27,34 +27,33 @@ public class JDBCExecutor {
                                                         7, "Validated");
 
     public static void main(String[] args) {
-        DatabaseConnectionManager dcm = new DatabaseConnectionManager("localhost", "1433", "Game", "sa", "$Fd524422");
+        DatabaseConnectionManager dcm = new DatabaseConnectionManager("localhost", "1433", "gamenew", "sa", "Password@10");
         try{
             connection = dcm.getConnection();
             gameDAO = new GameDAO(connection);
             transactionDAO = new TransactionDAO(connection);
-            currencyDAO = new CurrencyDAO(connection);
-            currencyList = currencyDAO.getAll();
+            currencyServices = new CurrencyServices(connection);
+            currencyList = currencyServices.getAll();
             UserServices userServices = new UserServices(connection);
             scanner = new Scanner(System.in);
 
             // Taking input for the type of User
             System.out.println("Enter 1 if you are a new user");
             System.out.println("Enter 2 if you are existing user");
-            User user;
             boolean checkInput = false;
             do {
                 int userType = scanner.nextInt();
                 if (userType == 1) {
                     try {
-                        boolean userCreated = false;
+                        boolean userCreated;
                         do {
                             // Taking user inputs
-                            int amt = 0;
-                            String name = "";
-                            String username = "";
-                            String pass = "";
-                            String repass = "";
-                            int currencyChoice = 0;
+                            int amt;
+                            String name;
+                            String username;
+                            String pass;
+                            String repass;
+                            int currencyChoice;
 
                             System.out.println("Enter the name: ");
                             name = scanner.next();
@@ -80,11 +79,11 @@ public class JDBCExecutor {
                         throw new RuntimeException(e);
                     }
                 } else if (userType == 2) {
-                    boolean userAuthorised = false;
+                    boolean userAuthorised;
                     int queryCount = 0;  // to maintain number of attempts to type passwords.
 
-                    String username = "";
-                    String password = "";
+                    String username;
+                    String password;
                     do {
                         // Taking user input
                         System.out.print("Enter username : ");
@@ -103,7 +102,7 @@ public class JDBCExecutor {
 
                         System.out.println("User is authorized");
                         UserServices.displayUserInfo(); // display user information
-                        int exit = -1;
+                        int exit;
                         do {
                             gameOptions();
                             try {
@@ -134,7 +133,7 @@ public class JDBCExecutor {
     // Method to create and add a new user to database.
     public static boolean createUser(String name, String username, String pass, String repass, int currencyChoice, int amt) throws Exception {
         User user = new User();
-        String currency = "";
+        String currency;
         int validationCode = AuthenticationService.Validate(username, pass, repass, currencyChoice);
         if(validationCode == 7) {
             ArrayList<String> currencies = new ArrayList<>(
@@ -160,8 +159,7 @@ public class JDBCExecutor {
 
     // Cant write test cases for this method, Only to take user inputs. Too lengthy to put in Main.
     static void gameOptions() {
-        int option = -1;
-        double winAmt = 0;
+        int option;
         System.out.print("Enter 1 if you want to play Game\n");
         System.out.print("Enter Any Key to exit");
         try {
